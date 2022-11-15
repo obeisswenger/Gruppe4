@@ -14,3 +14,6 @@
 This is the repository of Group 4 <br/>
 - Videogame Project
 - 2d platformer with the theme "attraction"
+
+# Progress
+* [week 1](week1/index.md)
