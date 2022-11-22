@@ -2,12 +2,15 @@
 - Doublejump
 - Walljump
 - Slopewalking
-- Anker that the player can pull himself towards
+- Anker repell/attract -> tag für magnetismus
+
 # Combat System
+## player side of combat
 - Health Points, for enemies, player
 - Damage Stats for different weapons
-- enemy weight, and magnetic stat
-- player ability to repel, and attract enemy
+## enemie side
+- enemy types -> weight, and magnetic stat
+
 # interactive objects
 - Jump Pads/ Reifen
 - Spikes, Lava
