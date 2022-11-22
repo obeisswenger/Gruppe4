@@ -11,11 +11,12 @@
 ## enemie side
 - enemy types -> weight, and magnetic stat
 
-# interactions
+# interactions und inventory
 - Jump Pads/ Reifen
 - Spikes, Lava
 - moveable boxes
 - etc.
+- player power ups/currency (speichern etc)
 
 # menu
 
