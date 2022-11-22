@@ -16,3 +16,6 @@
 - Spikes, Lava
 - moveable boxes
 - etc.
+
+# menu
+# theme of the game for general purpose
