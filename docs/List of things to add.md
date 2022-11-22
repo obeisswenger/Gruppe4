@@ -1,6 +1,7 @@
 # Movement
 - Doublejump
 - Walljump
+- Slopewalking
 - Anker that the player can pull himself towards
 # Combat System
 - Health Points, for enemies, player
