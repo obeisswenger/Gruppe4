@@ -10,4 +10,5 @@
 # interactive objects
 - Jump Pads/ Reifen
 - Spikes, Lava
+- moveable boxes
 - etc.
