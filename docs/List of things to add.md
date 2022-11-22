@@ -7,3 +7,7 @@
 - Damage Stats for different weapons
 - enemy weight, and magnetic stat
 - player ability to repel, and attract enemy
+# interactive objects
+- Jump Pads/ Reifen
+- Spikes, Lava
+- etc.
