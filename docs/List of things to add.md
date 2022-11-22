@@ -18,6 +18,6 @@
 - etc.
 - player power ups/currency (speichern etc)
 
-# menu
+# menu/speichern
 
 # theme of the game for general purpose
