@@ -146,7 +146,7 @@ public class Player : MonoBehaviour
         {
             if (forcemultiplier < maxmultiplier)
                 {
-                    forcemultiplier = forcemultiplier + 0.1f;
+                    forcemultiplier = forcemultiplier + 0.01f;
                 }
         }
     }
