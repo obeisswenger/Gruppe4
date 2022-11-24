@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
@@ -10,9 +11,12 @@ public class Player : MonoBehaviour
     public float jumphight = 15;
     private int jumpnumber = 2;
     private bool isgrounded = false;
+    private bool onWall = false;
+    private bool onSlide = false;
 
     private Animator anim;
     private Vector3 rotation;
+    public Collider2D groundcol;
 
     // Gravity stuff
     public GameObject selectedObject; 
@@ -23,11 +27,13 @@ public class Player : MonoBehaviour
     Vector3 mousePosition;
     private float maxmultiplier = 3;
     public float forcemultiplier = 0;
+    public Slider load;
+    
     
     // Slow motion stuff
     public TimeManager timeManager;
-    public float slowdownFactor = 0.05f;
-	public float slowdownLength = 2f;
+    private float slowdownFactor = 0.05f;
+	private float slowdownLength = 0.5f;
 
     // Start is called before the first frame update
     void Start()
@@ -35,6 +41,8 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         rotation = transform.eulerAngles;
+        //load = gameObject.GetComponent<Slider>();
+
     }
 
     // Force pulling player to orb
@@ -59,27 +67,32 @@ public class Player : MonoBehaviour
             anim.SetBool("IsRunning",false);
         }
 
-        //Animation
-        if(richtung < 0)
+        //Bewegen
+        if(richtung < 0 && (!onWall || isgrounded))
         {
             transform.eulerAngles = rotation - new Vector3(0,180,0);
             transform.Translate(Vector2.right * speed * -richtung * Time.deltaTime);
         }
-        if(richtung > 0)
+        else if(richtung > 0 && (!onWall || isgrounded))
         {
             transform.eulerAngles = rotation;
             transform.Translate(Vector2.right * speed * richtung * Time.deltaTime);
         }
+        //Anim
         if(isgrounded == false)
         {
-            anim.SetBool("IsJumping",true);
+            anim.SetFloat("yVel",rb.velocity.y);
+            if(jumpnumber < 2)
+            {
+                anim.SetBool("IsJumping",true);
+            }
         }
         else
         {
             anim.SetBool("IsJumping",false);
         }
 
-        anim.SetFloat("yVel",rb.velocity.y);
+        //anim.SetFloat("yVel",rb.velocity.y);
 
         //Jump
         if(Input.GetKeyDown(KeyCode.Space) && jumpnumber > 0)
@@ -87,13 +100,12 @@ public class Player : MonoBehaviour
             rb.velocity = new Vector2 (rb.velocity.x, 0f);
             rb.AddForce(Vector2.up * jumphight, ForceMode2D.Impulse);
             jumpnumber = jumpnumber - 1;
-            isgrounded = false;
         }
 
         //Slow motion Button
         if(Input.GetKeyDown(KeyCode.F))
         {
-            timeManager.DoSlowmotion(slowdownFactor, slowdownLength);
+            timeManager.DoSlowmotion(slowdownFactor * 2, slowdownLength * 2);
         }
 
         // Mouse0 click event
@@ -109,6 +121,7 @@ public class Player : MonoBehaviour
                     rb.velocity = Vector3.zero;
                     pulling = true;
                     jumpnumber = 0;
+                    load.gameObject.SetActive(true);
                 }
                 if (selectedObject.tag == "collectable")
                 {
@@ -116,12 +129,17 @@ public class Player : MonoBehaviour
                 }
             }
         }
-        else if(forcemultiplier > 0 && Input.GetMouseButtonUp(0))
+        else if(forcemultiplier > 0)
         {
-            selectedObject = null;
-            gravityOrbfunction(mousePosition);
-            forcemultiplier = 0;
-            pulling = false;
+            load.value = forcemultiplier / 3;
+            if (Input.GetMouseButtonUp(0))
+            {
+                selectedObject = null;
+                gravityOrbfunction(mousePosition);
+                forcemultiplier = 0;
+                pulling = false;
+                load.gameObject.SetActive(false);
+            }
         }
 
         // while pulled by the orb gravity is off
@@ -146,7 +164,7 @@ public class Player : MonoBehaviour
         {
             if (forcemultiplier < maxmultiplier)
                 {
-                    forcemultiplier = forcemultiplier + 0.01f;
+                    forcemultiplier = forcemultiplier + 0.05f;
                 }
         }
     }
@@ -159,12 +177,29 @@ public class Player : MonoBehaviour
             isgrounded = true;
             jumpnumber = 2;
         }
-        
+        else if(collision.gameObject.tag == "wall")
+        {
+            onWall = true;
+        }    
+    }
+
+    
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "wall")
+        {
+            onWall = false;
+        }
+        if(collision.gameObject.tag == "ground")
+        {
+            isgrounded = false;
+        }
+          
     }
 
     // Handeling collision with trigger objects
     private void OnTriggerEnter2D(Collider2D collider)
-    {
+    { 
         if(collider.gameObject.tag == "gravityorb")
         {
             gravitypull = false;
@@ -173,7 +208,7 @@ public class Player : MonoBehaviour
             rb.gravityScale = 5;
             rb.AddForce(Vector2.up * jumphight, ForceMode2D.Impulse);
             collider.gameObject.SetActive(false);
-            timeManager.DoSlowmotion(slowdownFactor, slowdownLength);
+            timeManager.DoSlowmotion(1f, 0.1f);
             jumpnumber = 1;
         }    
         if(collider.gameObject.tag == "collectable")
