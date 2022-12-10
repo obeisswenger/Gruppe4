@@ -7,8 +7,6 @@ TagManager:
   - ground
   - gravityorb
   - collectable
-  - wall
-  - Slides
   layers:
   - Default
   - TransparentFX
