@@ -68,10 +68,7 @@ public class GravityPlayer : MonoBehaviour
         else if(Input.GetKeyDown(KeyCode.Q))
         {
             selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
-            if(Math.Abs(direction.x) + Math.Abs(direction.y) < maxDist)
-            {
             gravityOrbStart();
-            }
         }
         else if(Input.GetKey(KeyCode.E))
         {
