@@ -7,6 +7,7 @@ TagManager:
   - ground
   - gravityorb
   - collectable
+  - Empty
   layers:
   - Default
   - TransparentFX

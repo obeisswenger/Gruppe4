@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class GravityPlayer : MonoBehaviour
 {
@@ -11,9 +12,9 @@ public class GravityPlayer : MonoBehaviour
     public float jumphight = 15;
 
 
-    // Gravity stuff
     public GameObject selectedObject; 
     public float gravity = 60;
+    public float gravityE = 20;
     private bool gravitypull = false; //already moving
     private bool pulling = false; //not moving just initializing
     public float suckforce = 40;
@@ -21,7 +22,8 @@ public class GravityPlayer : MonoBehaviour
     public float forcemultiplier = 0;
     public Slider load;
     private Vector3 mousePos;
-    
+    private float maxDist = 7f;
+    Vector2 direction;
     
     // Slow motion stuff
     public TimeManager timeManager;
@@ -39,8 +41,10 @@ public class GravityPlayer : MonoBehaviour
     private void gravityOrbPull()
     {
         rb.velocity = Vector3.zero; // vel to 0 so direction is orb
-        rb.AddForce((selectedObject.transform.position - transform.position).normalized * gravity * forcemultiplier, ForceMode2D.Impulse);
+        direction = selectedObject.transform.position - transform.position;
+        rb.AddForce(direction.normalized * gravity * forcemultiplier, ForceMode2D.Impulse);
         gravitypull = true; // now we are moving
+        selectedObject = GameObject.FindGameObjectsWithTag("Empty")[0];
     }
 
     private void gravityOrbStart()
@@ -60,11 +64,28 @@ public class GravityPlayer : MonoBehaviour
         {
             timeManager.DoSlowmotionTimed(slowdownFactor, slowdownLength);
         }
-        //Slow motion Button
-        if(Input.GetKeyDown(KeyCode.Q))
+        //Pull to next Orb
+        else if(Input.GetKeyDown(KeyCode.Q))
         {
             selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
+            if(Math.Abs(direction.x) + Math.Abs(direction.y) < maxDist)
+            {
             gravityOrbStart();
+            }
+        }
+        else if(Input.GetKey(KeyCode.E))
+        {
+            selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
+            direction = selectedObject.transform.position - transform.position;
+            if(Math.Abs(direction.x) + Math.Abs(direction.y) < maxDist)
+            {
+                rb.AddForce(direction.normalized * gravityE , ForceMode2D.Force);
+                gravityE = gravityE / 2;
+            }
+        }
+        else
+        {
+            gravityE = 20;
         }
         // Mouse0 click event
         if(Input.GetMouseButtonDown(0))
@@ -77,6 +98,7 @@ public class GravityPlayer : MonoBehaviour
                 if (selectedObject.tag == "gravityorb")
                 {
                     gravityOrbStart();
+
                 }
                 if (selectedObject.tag == "collectable")
                 {
@@ -88,7 +110,15 @@ public class GravityPlayer : MonoBehaviour
         {
             load.value = forcemultiplier / 3;
             timeManager.DoSlowmotion(slowdownFactor, true);
-            if (Input.GetMouseButtonUp(0) || Input.GetKeyUp(KeyCode.Q))
+            if (Input.GetKeyUp(KeyCode.Q))
+            {
+                gravityOrbPull();
+                forcemultiplier = 0;
+                pulling = false;
+                load.gameObject.SetActive(false);
+                timeManager.DoSlowmotion(1, false);
+            }
+            if (Input.GetMouseButtonUp(0))
             {
                 gravityOrbPull();
                 forcemultiplier = 0;
@@ -138,6 +168,7 @@ public class GravityPlayer : MonoBehaviour
             rb.gravityScale = 5;
             rb.AddForce(Vector2.up * jumphight, ForceMode2D.Impulse);
             collider.gameObject.SetActive(false);
+            GetComponent<Player>().jumpnumber = 1;
         }    
         if(collider.gameObject.tag == "collectable")
         { 
