@@ -5,7 +5,6 @@
     public class FPSCounter : MonoBehaviour
     {
         public float timer, refresh, avgFramerate;
-        string display = "{0} FPS";
         public Text m_Text;
         public TextMeshProUGUI textMeshProUGUI;
 

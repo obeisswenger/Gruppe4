@@ -6,24 +6,25 @@ using System;
 
 public class GravityPlayer : MonoBehaviour
 {
-    public float speed = 7;
-    public Collider2D gravityorobs;
-    private Rigidbody2D rb;
-    public float jumphight = 15;
-
-
     public GameObject selectedObject; 
-    public float gravity = 60;
-    public float gravityE = 20;
-    private bool gravitypull = false; //already moving
-    private bool pulling = false; //not moving just initializing
-    public float suckforce = 40;
-    private float maxmultiplier = 3;
-    public float forcemultiplier = 0;
+    [SerializeField]
+    private GameObject selectionAnim;
     public Slider load;
     private Vector3 mousePos;
-    private float maxDist = 7f;
-    Vector2 direction;
+    public Collider2D gravityorobs;
+    private Rigidbody2D rb;
+    private Vector2 direction;
+    
+    public float speed = 7;
+    public float jumphight = 15;
+    public float gravity = 60;
+    private float maxmultiplier = 3;
+    public float forcemultiplier = 0;
+
+    private bool pulling = false; 
+
+    public float maxSelectDist = 10f;
+
     
     // Slow motion stuff
     public TimeManager timeManager;
@@ -43,7 +44,8 @@ public class GravityPlayer : MonoBehaviour
         rb.velocity = Vector3.zero; // vel to 0 so direction is orb
         direction = selectedObject.transform.position - transform.position;
         rb.AddForce(direction.normalized * gravity * forcemultiplier, ForceMode2D.Impulse);
-        gravitypull = true; // now we are moving
+        rb.gravityScale = 0;
+        rb.drag = 2f; 
         selectedObject = GameObject.FindGameObjectsWithTag("Empty")[0];
     }
 
@@ -52,7 +54,34 @@ public class GravityPlayer : MonoBehaviour
         rb.velocity = Vector3.zero;
         pulling = true;
         load.gameObject.SetActive(true);
+    }
 
+    private void selection()
+    {
+        if(selectedObject.tag == "gravityorb")
+            {
+                selectedObject.tag = "not right";
+            }
+            selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
+            if(GetComponent<VisibilityCheck>().IsVisible(selectedObject))
+            {
+                selectionAnim.SetActive(true);
+                selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
+            }
+            else
+            {
+                GameObject[] gameObjects = GameObject.FindGameObjectsWithTag("not right");
+                foreach (GameObject gameObject in gameObjects)
+                {
+                    gameObject.tag = "gravityorb";   
+                }
+                selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
+                if(GetComponent<VisibilityCheck>().IsVisible(selectedObject))
+                {
+                    selectionAnim.SetActive(true);
+                    selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
+                }
+            }
     }
 
     // Update is called once per frame
@@ -63,27 +92,29 @@ public class GravityPlayer : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.F))
         {
             timeManager.DoSlowmotionTimed(slowdownFactor, slowdownLength);
-        }
-        //Pull to next Orb
-        else if(Input.GetKeyDown(KeyCode.Q))
+        } 
+        // selection
+        else if(Input.GetKeyDown(KeyCode.E))
         {
-            selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
-            gravityOrbStart();
+            selection();
         }
-        else if(Input.GetKey(KeyCode.E))
+        else if(Input.GetKey(KeyCode.Q))
         {
-            selectedObject = GetComponent<FindClosestObject>().nearestObjectWithTag("gravityorb");
-            direction = selectedObject.transform.position - transform.position;
-            if(Math.Abs(direction.x) + Math.Abs(direction.y) < maxDist)
+            if(selectedObject.tag == "gravityorb")
             {
-                rb.AddForce(direction.normalized * gravityE , ForceMode2D.Force);
-                gravityE = gravityE / 2;
+                gravityOrbStart(); //Pull to next Orb
+            }
+            else
+            {
+                selection();
             }
         }
-        else
+        if(selectedObject.tag == "gravityorb" && !GetComponent<VisibilityCheck>().IsVisible(selectedObject))
         {
-            gravityE = 20;
+            selectedObject = GameObject.FindGameObjectsWithTag("Empty")[0]; // if object not seeable then not selected anymore
+            selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
         }
+
         // Mouse0 click event
         if(Input.GetMouseButtonDown(0))
         {
@@ -95,11 +126,6 @@ public class GravityPlayer : MonoBehaviour
                 if (selectedObject.tag == "gravityorb")
                 {
                     gravityOrbStart();
-
-                }
-                if (selectedObject.tag == "collectable")
-                {
-                    selectedObject.GetComponent<Rigidbody2D>().AddForce((transform.position - selectedObject.transform.position).normalized * suckforce, ForceMode2D.Impulse);
                 }
             }
         }
@@ -125,18 +151,11 @@ public class GravityPlayer : MonoBehaviour
             }
         }
 
-        // while pulled by the orb gravity is off
-        if(gravitypull)
-        {
-            rb.gravityScale = 0;
-            rb.drag = 2f; 
-        }
         // If velocity to low turn on gravity again
         if(rb.velocity.x + rb.velocity.y < 2)
         {
             rb.gravityScale = 5;
             rb.drag = 0f; 
-            gravitypull = false;
         }
     }
     
@@ -159,7 +178,6 @@ public class GravityPlayer : MonoBehaviour
     { 
         if(collider.gameObject.tag == "gravityorb")
         {
-            gravitypull = false;
             rb.velocity = Vector3.zero;
             rb.drag = 0f; 
             rb.gravityScale = 5;

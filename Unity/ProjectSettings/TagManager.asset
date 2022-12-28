@@ -8,6 +8,7 @@ TagManager:
   - gravityorb
   - collectable
   - Empty
+  - not right
   layers:
   - Default
   - TransparentFX
