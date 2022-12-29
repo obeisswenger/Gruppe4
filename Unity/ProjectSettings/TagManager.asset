@@ -9,6 +9,8 @@ TagManager:
   - collectable
   - Empty
   - not right
+  - Enemy
+  - Selectable
   layers:
   - Default
   - TransparentFX
@@ -17,8 +19,8 @@ TagManager:
   - Water
   - UI
   - slope
-  - 
-  - 
+  - Selectable
+  - NotRight
   - 
   - 
   - 
