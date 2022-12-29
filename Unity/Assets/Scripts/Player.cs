@@ -13,22 +13,28 @@ public class Player : MonoBehaviour
     private Animator anim;
     private Vector3 rotation;
 
+    // The layer mask for the ground and walls
+    public LayerMask obstacleLayerMask;
 
+    // The player's sprite renderer component
+    private SpriteRenderer spriteRenderer;
     
+    private float richtung;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         rotation = transform.eulerAngles;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Walk
-        float richtung = Input.GetAxis("Horizontal");
+        //animation
+        richtung = Input.GetAxis("Horizontal");
         if(richtung != 0)
         {
             anim.SetBool("IsRunning",true);
@@ -36,18 +42,6 @@ public class Player : MonoBehaviour
         else
         {
             anim.SetBool("IsRunning",false);
-        }
-
-        //Animation
-        if(richtung < 0)
-        {
-            transform.eulerAngles = rotation - new Vector3(0,180,0);
-            transform.Translate(Vector2.right * speed * -richtung * Time.deltaTime);
-        }
-        if(richtung > 0)
-        {
-            transform.eulerAngles = rotation;
-            transform.Translate(Vector2.right * speed * richtung * Time.deltaTime);
         }
         if(isgrounded == false)
         {
@@ -63,18 +57,28 @@ public class Player : MonoBehaviour
         //Jump
         if(Input.GetKeyDown(KeyCode.Space) && jumpnumber > 0)
         {
+            rb.rotation = 0f;
             rb.velocity = new Vector2 (rb.velocity.x, 0f);
             rb.AddForce(Vector2.up * jumphight, ForceMode2D.Impulse);
             jumpnumber = jumpnumber - 1;
             isgrounded = false;
         }
-
-
-
-    
     }
 
-
+    void FixedUpdate()
+    {
+        //walking
+        if(richtung < 0  && !Physics2D.Raycast(transform.position, Vector2.left, 0.4f, obstacleLayerMask))
+        {
+            spriteRenderer.flipX = true;
+            transform.Translate(Vector2.left * speed * -richtung * Time.deltaTime);
+        }
+        else if(richtung > 0 && !Physics2D.Raycast(transform.position, Vector2.right, 0.4f, obstacleLayerMask))
+        {
+            spriteRenderer.flipX = false;
+            transform.Translate(Vector2.right * speed * richtung * Time.deltaTime);
+        }
+    }
     // Handeling collision with non-trigger objects
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -83,9 +87,7 @@ public class Player : MonoBehaviour
             isgrounded = true;
             jumpnumber = 2;
         }
-        
     }
-
 }
 
 

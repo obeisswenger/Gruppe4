@@ -157,6 +157,16 @@ public class GravityPlayer : MonoBehaviour
             rb.gravityScale = 5;
             rb.drag = 0f; 
         }
+        if(rb.velocity.y > 200)
+        {
+            print(rb.velocity.y);
+            //rb.velocity = new Vector2 (rb.velocity.x, 15);
+        }
+        if(rb.velocity.x > 200)
+        {
+            print(rb.velocity.x);
+            //rb.velocity = new Vector2 (15, rb.velocity.y);
+        }
     }
     
     void FixedUpdate ()
