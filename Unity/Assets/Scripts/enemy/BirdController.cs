@@ -8,22 +8,22 @@ public class BirdController : MonoBehaviour
     public GameObject player;
 
     // The distance at which the bird will start following the player
-    public float followDistance = 5.0f;
+    public float followDistance = 40f;
 
     // The distance above the player at which the bird will fly
-    public float flyHeight = 2.0f;
+    public float flyHeight = 6f;
 
     // The speed at which the bird will follow the player
     public float followSpeed = 1.0f;
 
     // The interval at which the attack() function will be called
-    public float attackInterval = 1.0f;
+    public float attackInterval = 5.0f;
 
     // The maximum vertical distance the bird will fly above and below the player
-    public float maxVerticalDistance = 4.0f;
+    public float maxVerticalDistance = 1f;
 
     // The speed at which the bird will fly up and down
-    public float verticalSpeed = 1.0f;
+    public float verticalSpeed = 0.5f;
 
     // The maximum horizontall distance the bird will fly above and below the player
     public float maxHorizontalDistance = 2.0f;
@@ -32,10 +32,10 @@ public class BirdController : MonoBehaviour
     public float horizontalSpeed = 1.0f;
 
     // The delay in seconds before the bird starts moving
-    public float movementDelay = 1.0f;
+    public float movementDelay = 2.0f;
 
     // Timer for calling the attack() function
-    private float attackTimer = 0.0f;
+    private float attackTimer = 7.0f;
 
     // Timer for the movement delay
     private float movementTimer = 0.0f;
@@ -56,7 +56,7 @@ public class BirdController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         // Update the movementTimer
         movementTimer += Time.deltaTime;

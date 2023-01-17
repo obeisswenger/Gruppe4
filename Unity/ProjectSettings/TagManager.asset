@@ -5,20 +5,15 @@ TagManager:
   serializedVersion: 2
   tags:
   - ground
-  - gravityorb
-  - collectable
   - Empty
-  - not right
-  - Enemy
-  - Selectable
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - ground
+  - Slope
   - Water
   - UI
-  - slope
+  - Ground
   - Selectable
   - NotRight
   - 
@@ -45,15 +40,6 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Background
-    uniqueID: 658487377
-    locked: 0
-  - name: mid
-    uniqueID: 1814660529
-    locked: 0
   - name: Default
     uniqueID: 0
-    locked: 0
-  - name: Foreground
-    uniqueID: 1131651003
     locked: 0

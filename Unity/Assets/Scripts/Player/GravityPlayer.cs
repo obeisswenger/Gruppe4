@@ -11,9 +11,10 @@ public class GravityPlayer : MonoBehaviour
     public GameObject selectedObject; 
     [SerializeField]
     private GameObject selectionAnim;
+    [SerializeField]
+    private GameObject disableScripts;
     public Slider load;
     private Vector3 mousePos;
-    public Collider2D gravityorobs;
     private Rigidbody2D rb;
     private Vector2 direction;
     
@@ -22,12 +23,16 @@ public class GravityPlayer : MonoBehaviour
     public float gravity = 60;
     private float maxmultiplier = 3;
     public float forcemultiplier = 0;
+    // The strength of the gravitational pull force applied to the affected objects
+    public float pullForce = 10.0f;
 
     private bool pulling = false; 
 
     public float maxSelectDist = 10f;
 
-    
+    [SerializeField]
+    private Camera cam;
+
     // Slow motion stuff
     public TimeManager timeManager;
     private float slowdownFactor = 0.05f;
@@ -41,34 +46,49 @@ public class GravityPlayer : MonoBehaviour
 
 
     // Force pulling player to orb
-    private void SelectablePull()
+    private void GravityPush()
     {
         rb.velocity = Vector3.zero; // vel to 0 so direction is orb
         direction = selectedObject.transform.position - transform.position;
         rb.AddForce(direction.normalized * gravity * forcemultiplier, ForceMode2D.Impulse);
-        rb.gravityScale = 0;
+        //rb.gravityScale = 0;
         rb.drag = 2f; 
         selectedObject = GameObject.FindGameObjectsWithTag("Empty")[0];
     }
 
-    private void SelectableStart()
+    private void GravityPushStart()
     {
         rb.velocity = Vector3.zero;
         pulling = true;
         load.gameObject.SetActive(true);
     }
 
-    private void selection()
+    private void Selection()
     {
+        
         if(selectedObject.tag != "Empty")
         {
             selectedObject.layer = 8;
         }
         selectedObject = GetComponent<FindClosestObject>().nearestObjectWithLayer("Selectable");
+
+        // Check if the Selectable Object is actual visible and also
         if(GetComponent<VisibilityCheck>().IsVisible(selectedObject))
         {
-            selectionAnim.SetActive(true);
-            selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
+            Ray ray = new Ray(transform.position, selectedObject.transform.position - transform.position);
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Vector2.Distance(transform.position, selectedObject.transform.position));
+
+            // Return true if the ray hit a game object with the "ground" tag
+            if (hit.collider != null && hit.collider.tag != "ground")
+            {
+                selectionAnim.SetActive(true);
+                selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
+            }
+            else
+            {
+                print("3");
+                Selection();
+            }
         }
         else
         {
@@ -77,57 +97,92 @@ public class GravityPlayer : MonoBehaviour
             {
                 gameObject.layer = 7;   
             }
-            selectedObject = GetComponent<FindClosestObject>().nearestObjectWithLayer("Selectable");
-            if(GetComponent<VisibilityCheck>().IsVisible(selectedObject))
-            {
-                selectionAnim.SetActive(true);
-                selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
-            }
+            Selection();
         }
     }
+
+    void EnableEnemyScript(bool enable)
+    {
+        MonoBehaviour script = selectedObject.GetComponent<BirdController>();
+        if (script != null)
+        {
+            script.enabled = enable;
+        }
+        script = selectedObject.GetComponent<enemy>();
+        if (script != null)
+        {
+            script.enabled = enable;
+        }
+    }
+
+    public void GravityPull()
+    {
+        // Calculate the vector from the held object to the player
+        Vector2 direction = transform.position - selectedObject.transform.position;
+
+        // Normalize the vector and scale it by the force
+        direction = direction.normalized * pullForce;
+        
+        EnableEnemyScript(false);
+        // Apply the force to the held object
+        selectedObject.GetComponent<Rigidbody2D>().AddForce(direction);
+    }
+
 
     // Update is called once per frame
     void Update()
     {
 
-        //Slow motion Button
-        if(Input.GetKeyDown(KeyCode.F))
+        // Pulling button
+        if(Input.GetKey(KeyCode.LeftControl))
         {
-            timeManager.DoSlowmotionTimed(slowdownFactor, slowdownLength);
+            if(selectedObject.layer == 7)
+            {
+                GravityPull(); //Pull the object
+                GetComponent<LaserController>().EnableLaser();
+                GetComponent<LaserController>().UpdateLaser(selectedObject);
+            }
         } 
+        else if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            EnableEnemyScript(true);
+            GetComponent<LaserController>().DisableLaser();
+        }
+
         // selection
         else if(Input.GetKeyDown(KeyCode.E))
         {
-            selection();
+            Selection();
         }
         else if(Input.GetKey(KeyCode.Q))
         {
             if(selectedObject.layer == 7)
             {
-                SelectableStart(); //Pull to next Orb
+                GravityPushStart(); // Push to object
             }
             else
             {
-                selection();
+                Selection();
             }
         }
         if(selectedObject.layer == 7 && !GetComponent<VisibilityCheck>().IsVisible(selectedObject))
         {
             selectedObject = GameObject.FindGameObjectsWithTag("Empty")[0]; // if object not seeable then not selected anymore
             selectionAnim.GetComponent<SelectedAnim>().selected = selectedObject;
+            GetComponent<LaserController>().DisableLaser();
         }
 
         // Mouse0 click event
         if(Input.GetMouseButtonDown(0))
         {
-            mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
             Collider2D targetObject = Physics2D.OverlapPoint(mousePos);
             if (targetObject)
             {
                 selectedObject = targetObject.transform.gameObject;
                 if (selectedObject.tag == "Selectable")
                 {
-                    SelectableStart();
+                    GravityPushStart();
                 }
             }
         }
@@ -137,19 +192,23 @@ public class GravityPlayer : MonoBehaviour
             timeManager.DoSlowmotion(slowdownFactor, true);
             if (Input.GetKeyUp(KeyCode.Q))
             {
-                SelectablePull();
+                GravityPush();
                 forcemultiplier = 0;
                 pulling = false;
                 load.gameObject.SetActive(false);
                 timeManager.DoSlowmotion(1, false);
             }
-            if (Input.GetMouseButtonUp(0))
+            else if (Input.GetMouseButtonUp(0))
             {
-                SelectablePull();
+                GravityPush();
                 forcemultiplier = 0;
                 pulling = false;
                 load.gameObject.SetActive(false);
                 timeManager.DoSlowmotion(1, false);
+            }
+            if (forcemultiplier < maxmultiplier)
+            {
+                forcemultiplier = forcemultiplier + 0.05f;
             }
         }
 
@@ -162,48 +221,12 @@ public class GravityPlayer : MonoBehaviour
         if(rb.velocity.y > 200)
         {
             print(rb.velocity.y);
-            //rb.velocity = new Vector2 (rb.velocity.x, 15);
         }
         if(rb.velocity.x > 200)
         {
             print(rb.velocity.x);
-            //rb.velocity = new Vector2 (15, rb.velocity.y);
         }
     }
-    
-    void FixedUpdate ()
-    {
-        // Calculating forcemultiplier here so it is not influenced by hardware
-        if(pulling)
-        {
-            if (forcemultiplier < maxmultiplier)
-            {
-                forcemultiplier = forcemultiplier + 0.05f;
-            }
-        }
-    }
-
-    
-    /*
-    // Handeling collision with trigger objects
-    private void OnTriggerEnter2D(Collider2D collider)
-    { 
-        if(collider.gameObject.tag == "Selectable")
-        {
-            rb.velocity = Vector3.zero;
-            rb.drag = 0f; 
-            rb.gravityScale = 5;
-            rb.AddForce(Vector2.up * jumphight, ForceMode2D.Impulse);
-            collider.gameObject.SetActive(false);
-            GetComponent<Player>().jumpnumber = 1;
-        }    
-        if(collider.gameObject.tag == "collectable")
-        { 
-            collider.gameObject.SetActive(false);
-        }      
-    }
-    */
-
 }
 
 

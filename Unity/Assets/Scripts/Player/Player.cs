@@ -52,7 +52,7 @@ public class Player : MonoBehaviour
             anim.SetBool("IsJumping",false);
         }
 
-        anim.SetFloat("yVel",rb.velocity.y);
+        anim.SetFloat("yVal",rb.velocity.y);
 
         //Jump
         if(Input.GetKeyDown(KeyCode.Space) && jumpnumber > 0)
@@ -63,11 +63,8 @@ public class Player : MonoBehaviour
             jumpnumber = jumpnumber - 1;
             isgrounded = false;
         }
-    }
 
-    void FixedUpdate()
-    {
-        //walking
+                //walking
         if(richtung < 0  && !Physics2D.Raycast(transform.position, Vector2.left, 0.4f, obstacleLayerMask))
         {
             spriteRenderer.flipX = true;
@@ -78,7 +75,9 @@ public class Player : MonoBehaviour
             spriteRenderer.flipX = false;
             transform.Translate(Vector2.right * speed * richtung * Time.deltaTime);
         }
+
     }
+
     // Handeling collision with non-trigger objects
     private void OnCollisionEnter2D(Collision2D collision)
     {
